@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Xero Smart Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0C0B2E;font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+  input::placeholder{color:#4a4a7a}
+  input:focus{outline:none}
+  button{font-family:'Space Grotesk',sans-serif;cursor:pointer}
+  @keyframes float0{0%,100%{transform:translate(0,0) rotate(-8deg)}50%{transform:translate(6px,-14px) rotate(-4deg)}}
+  @keyframes float1{0%,100%{transform:translate(0,0) rotate(12deg)}50%{transform:translate(-10px,10px) rotate(8deg)}}
+  @keyframes float2{0%,100%{transform:translate(0,0) rotate(5deg)}50%{transform:translate(8px,-8px) rotate(10deg)}}
+  @keyframes float3{0%,100%{transform:translate(0,0) rotate(-15deg)}50%{transform:translate(-6px,12px) rotate(-10deg)}}
+  @keyframes float4{0%,100%{transform:translate(0,0) rotate(20deg)}50%{transform:translate(10px,-6px) rotate(24deg)}}
+  @keyframes float5{0%,100%{transform:translate(0,0) rotate(-5deg)}50%{transform:translate(-8px,-10px) rotate(-2deg)}}
+  @keyframes float6{0%,100%{transform:translate(0,0) rotate(8deg)}50%{transform:translate(6px,10px) rotate(12deg)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes bounceIn{0%{transform:scale(0.5);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+  @keyframes reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(500px) rotate(540deg);opacity:0}}
+  @keyframes shimmer{0%,100%{opacity:0.7}50%{opacity:1}}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,200,240,0.3)}50%{box-shadow:0 0 0 8px rgba(0,200,240,0)}}
+</style>
+<template id="__bundler_thumbnail" data-bg-color="#0C0B2E">
+  <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+    <rect width="400" height="300" fill="#0C0B2E"/>
+    <rect x="120" y="80" width="160" height="140" rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <text x="200" y="138" text-anchor="middle" fill="#00C8F0" font-size="32" font-weight="800" font-family="sans-serif">xero</text>
+    <rect x="148" y="152" width="104" height="6" rx="3" fill="rgba(0,200,240,0.3)"/>
+    <rect x="160" y="167" width="80" height="4" rx="2" fill="rgba(255,255,255,0.15)"/>
+    <rect x="148" y="182" width="104" height="28" rx="8" fill="#00C8F0"/>
+    <circle cx="80" cy="80" r="22" fill="#FFB800" opacity="0.7"/>
+    <circle cx="320" cy="200" r="18" fill="#9B5CFA" opacity="0.6"/>
+    <circle cx="340" cy="70" r="14" fill="#00D4A8" opacity="0.6"/>
+    <circle cx="60" cy="220" r="16" fill="#FF5C78" opacity="0.5"/>
+  </svg>
+</template>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── Design tokens ──────────────────────────────────────────────────
+const C = {
+  navy:     '#0C0B2E',
+  navyMid:  '#13124A',
+  navyCard: 'rgba(255,255,255,0.05)',
+  navyBorder:'rgba(255,255,255,0.10)',
+  cyan:     '#00C8F0',
+  cyanSoft: 'rgba(0,200,240,0.12)',
+  cyanBorder:'rgba(0,200,240,0.3)',
+  coral:    '#FF5C78',
+  purple:   '#9B5CFA',
+  gold:     '#FFB800',
+  mint:     '#00D4A8',
+  white:    '#FFFFFF',
+  whiteOff: 'rgba(255,255,255,0.85)',
+  whiteMid: 'rgba(255,255,255,0.72)',
+  whiteDim: 'rgba(255,255,255,0.48)',
+  qbGreen:  '#2CA01C',
+  qbSoft:   'rgba(44,160,28,0.12)',
+  qbBorder: 'rgba(44,160,28,0.3)',
+};
+
+// ── Demo data ──────────────────────────────────────────────────────
+const DEMO = {
+  company_name: 'Martinez Landscaping',
+  industry: 'Landscaping & Lawn Care',
+  location: { city: 'Austin', state_code: 'TX' },
+  estimated_size: 'Small (1–10 employees)',
+  description: 'Full-service landscaping and lawn maintenance serving the greater Austin, Texas area.',
+  tax: { name: 'Texas Sales Tax', rate: '8.25%' },
+  features: [
+    { feature:'Tracking Categories', desc:'Track profitability per job site — know exactly which jobs make money.', stat:'93', suffix:'%', stat_label:'of landscaping businesses use this', qb_from:'Classes', qb_note:'Same as QB Classes but supports two levels — e.g. by Project AND Service Type.' },
+    { feature:'Quotes', desc:'Send professional proposals and convert accepted quotes to invoices in one click.', stat:'10', suffix:'+', stat_label:'quotes sent per week on average', qb_from:'Estimates', qb_note:'Same concept, different name. Xero Quotes convert to invoices instantly with inline payment links.' },
+    { feature:'Repeating Invoices', desc:'Automate billing for recurring maintenance contracts — invoices go out hands-free.', stat:'87', suffix:'%', stat_label:'of lawn care companies automate this', qb_from:'Memorized Transactions', qb_note:'QB Memorized Transactions → Xero Repeating Invoices. Auto-send on schedule, no manual approval needed.' },
+  ],
+  accounts: [
+    {code:'200',name:'Landscaping Services',type:'Revenue'},
+    {code:'201',name:'Maintenance Contracts',type:'Revenue'},
+    {code:'400',name:'Equipment Rental',type:'Expense'},
+    {code:'401',name:'Fuel & Vehicle',type:'Expense'},
+    {code:'402',name:'Plants & Materials',type:'Expense'},
+  ],
+};
+
+// ── Floating brand icons ───────────────────────────────────────────
+const ICONS = [
+  // Gold coin
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#FFB800" stroke="#E5A200" strokeWidth="2"/><circle cx="30" cy="30" r="22" fill="#FFC820" opacity="0.5"/><text x="30" y="38" textAnchor="middle" fill="#7A5000" fontSize="22" fontWeight="800" fontFamily="sans-serif">$</text></svg>,
+  // Green checkmark circle
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#00D4A8"/><path d="M16 30l10 11 18-20" stroke="white" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>,
+  // Purple hourglass
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><rect width="60" height="60" rx="16" fill="#9B5CFA"/><path d="M18 12h24M18 48h24M20 12c0 10 10 16 10 16S40 24 40 12M20 48c0-10 10-16 10-16s10 6 10 16" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none"/><ellipse cx="30" cy="38" rx="5" ry="3" fill="white" opacity="0.5"/></svg>,
+  // Cyan chat bubble
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><rect width="60" height="60" rx="16" fill="#00C8F0"/><rect x="14" y="16" width="32" height="20" rx="8" fill="white"/><path d="M22 42l4-6h8" fill="white"/><rect x="20" y="23" width="6" height="3" rx="1.5" fill="#00C8F0"/><rect x="29" y="23" width="10" height="3" rx="1.5" fill="#00C8F0"/></svg>,
+  // Coral lightning
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><rect width="60" height="60" rx="30" fill="#FF5C78"/><path d="M35 10L20 32h14L25 50 40 26H27z" fill="white"/></svg>,
+  // Blue document
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><rect width="60" height="60" rx="14" fill="#4DA6FF"/><rect x="14" y="10" width="32" height="40" rx="4" fill="white"/><rect x="20" y="20" width="20" height="3" rx="1.5" fill="#4DA6FF" opacity="0.5"/><rect x="20" y="27" width="14" height="3" rx="1.5" fill="#4DA6FF" opacity="0.35"/><rect x="20" y="34" width="18" height="3" rx="1.5" fill="#4DA6FF" opacity="0.35"/></svg>,
+  // Yellow star/sparkle
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><path d="M30 4l6 20H56L40 36l6 20-16-12-16 12 6-20L4 24h20z" fill="#FFB800"/></svg>,
+  // Pink calendar
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><rect width="60" height="60" rx="14" fill="#FF5C78"/><rect x="12" y="16" width="36" height="32" rx="5" fill="white"/><rect x="12" y="16" width="36" height="12" rx="5" fill="#FF5C78"/><circle cx="22" cy="12" r="3" fill="white"/><circle cx="38" cy="12" r="3" fill="white"/><path d="M18 36l6 6 14-14" stroke="#FF5C78" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>,
+  // Tax bag - simplified
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><rect width="60" height="60" rx="14" fill="#4DA6FF"/><rect x="18" y="16" width="24" height="30" rx="5" fill="white"/><rect x="18" y="10" width="24" height="10" rx="4" fill="white" opacity="0.8"/><text x="30" y="37" textAnchor="middle" fill="#4DA6FF" fontSize="11" fontWeight="800" fontFamily="sans-serif">TAX</text></svg>,
+  // Mint percentage
+  ({ s }) => <svg width={s} height={s} viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#00D4A8"/><text x="30" y="40" textAnchor="middle" fill="white" fontSize="26" fontWeight="800" fontFamily="sans-serif">%</text></svg>,
+];
+
+const ICON_POSITIONS = [
+  { x:3,   y:8,   sz:52, ani:0, dur:7,  opacity:0.85 },
+  { x:82,  y:5,   sz:44, ani:1, dur:9,  opacity:0.8  },
+  { x:8,   y:55,  sz:48, ani:2, dur:8,  opacity:0.75 },
+  { x:88,  y:65,  sz:56, ani:3, dur:10, opacity:0.8  },
+  { x:18,  y:78,  sz:40, ani:4, dur:6,  opacity:0.7  },
+  { x:75,  y:35,  sz:36, ani:5, dur:11, opacity:0.65 },
+  { x:2,   y:30,  sz:30, ani:6, dur:8,  opacity:0.55 },
+  { x:60,  y:5,   sz:38, ani:0, dur:9,  opacity:0.65 },
+  { x:35,  y:85,  sz:42, ani:1, dur:7,  opacity:0.7  },
+  { x:90,  y:22,  sz:32, ani:2, dur:12, opacity:0.55 },
+];
+
+const FloatingIcons = () => (
+  <div style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex:0, overflow:'hidden' }}>
+    {ICON_POSITIONS.map((p, i) => {
+      const Icon = ICONS[i % ICONS.length];
+      return (
+        <div key={i} style={{
+          position:'absolute',
+          left:`${p.x}%`,
+          top:`${p.y}%`,
+          opacity:p.opacity,
+          animation:`float${p.ani % 7} ${p.dur}s ease-in-out infinite`,
+          filter:'drop-shadow(0 8px 24px rgba(0,0,0,0.5))',
+        }}>
+          <Icon s={p.sz}/>
+        </div>
+      );
+    })}
+  </div>
+);
+
+// ── Counter ────────────────────────────────────────────────────────
+const Counter = ({ target, suffix='', duration=1100 }) => {
+  const [val, setVal] = useState(0);
+  const [started, setStarted] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStarted(true); }, { threshold:0.5 });
+    if (ref.current) o.observe(ref.current);
+    return () => o.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!started) return;
+    const n = parseInt(target);
+    if (isNaN(n)) { setVal(target); return; }
+    let s = 0;
+    const step = Math.max(1, Math.ceil(n / (duration / 30)));
+    const t = setInterval(() => { s += step; if (s >= n) { setVal(n); clearInterval(t); } else setVal(s); }, 30);
+    return () => clearInterval(t);
+  }, [started, target, duration]);
+  return <span ref={ref}>{val}{suffix}</span>;
+};
+
+// ── Confetti ───────────────────────────────────────────────────────
+const Confetti = () => {
+  const cols = [C.cyan, C.coral, C.purple, C.gold, C.mint, '#4DA6FF'];
+  return (
+    <div style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex:999, overflow:'hidden' }}>
+      {Array.from({length:60}).map((_,i) => (
+        <div key={i} style={{
+          position:'absolute',
+          left:`${Math.random()*100}%`,
+          top:-12,
+          width:Math.random()*8+4,
+          height:Math.random()*16+6,
+          background:cols[i%cols.length],
+          borderRadius:Math.random()>0.5?'50%':2,
+          animation:`confettiFall ${Math.random()*2.5+1.5}s ease-in ${Math.random()}s forwards`,
+          transform:`rotate(${Math.random()*360}deg)`,
+        }}/>
+      ))}
+    </div>
+  );
+};
+
+// ── Shared components ──────────────────────────────────────────────
+const XeroWordmark = ({ size=22 }) => (
+  <svg width={size*3.2} height={size} viewBox="0 0 100 30" fill="none">
+    <text x="0" y="24" fill="white" fontSize="28" fontWeight="800" fontFamily="'Space Grotesk',sans-serif" letterSpacing="-1">xero</text>
+  </svg>
+);
+
+const TopNav = () => (
+  <div style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, height:58, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(12,11,46,0.8)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+    <XeroWordmark size={22}/>
+  </div>
+);
+
+const Steps = ({ current, total=3 }) => (
+  <div style={{ display:'flex', gap:6, justifyContent:'center', marginBottom:32 }}>
+    {Array.from({length:total}).map((_,i) => (
+      <div key={i} style={{
+        height:4, borderRadius:4,
+        width: i === current ? 40 : 16,
+        background: i < current ? C.mint : i === current ? C.cyan : 'rgba(255,255,255,0.15)',
+        transition:'all 0.4s cubic-bezier(0.23,1,0.32,1)',
+      }}/>
+    ))}
+  </div>
+);
+
+const PrimaryBtn = ({ children, onClick, disabled, style:st={} }) => (
+  <button onClick={onClick} disabled={disabled} style={{
+    display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+    padding:'14px 28px', fontSize:15, fontWeight:700, color: disabled ? 'rgba(255,255,255,0.35)' : C.navy,
+    background: disabled ? 'rgba(255,255,255,0.1)' : `linear-gradient(135deg, ${C.cyan}, #00A8E8)`,
+    border:'none', borderRadius:12, cursor: disabled ? 'not-allowed' : 'pointer',
+    transition:'all 0.2s ease', width:'100%', letterSpacing:'-0.01em',
+    boxShadow: disabled ? 'none' : `0 4px 20px rgba(0,200,240,0.35)`,
+    ...st
+  }}
+  onMouseEnter={e=>{ if(!disabled){ e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=`0 8px 28px rgba(0,200,240,0.45)`; }}}
+  onMouseLeave={e=>{ if(!disabled){ e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow=`0 4px 20px rgba(0,200,240,0.35)`; }}}>
+    {children}
+  </button>
+);
+
+const GhostBtn = ({ children, onClick }) => (
+  <button onClick={onClick} style={{
+    display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+    padding:'12px 20px', fontSize:14, fontWeight:600, color:C.whiteMid,
+    background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)',
+    borderRadius:12, cursor:'pointer', transition:'all 0.2s ease',
+  }}
+  onMouseEnter={e=>{ e.currentTarget.style.color=C.white; e.currentTarget.style.background='rgba(255,255,255,0.1)'; }}
+  onMouseLeave={e=>{ e.currentTarget.style.color=C.whiteMid; e.currentTarget.style.background='rgba(255,255,255,0.06)'; }}>
+    {children}
+  </button>
+);
+
+const JAXBadge = () => (
+  <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 14px', borderRadius:20, background:'rgba(0,200,240,0.12)', border:'1px solid rgba(0,200,240,0.25)', animation:'shimmer 3s ease-in-out infinite' }}>
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 0L9.5 5.5L15 7L9.5 8.5L8 14L6.5 8.5L1 7L6.5 5.5L8 0Z" fill={C.cyan}/></svg>
+    <span style={{ fontSize:11, fontWeight:700, color:C.cyan, letterSpacing:'0.06em' }}>JAX-POWERED</span>
+  </div>
+);
+
+// ── SCREEN 0: Welcome + QB switcher ───────────────────────────────
+const Screen0 = ({ onContinue }) => {
+  const [switcher, setSwitcher] = useState(null);
+
+  const opts = [
+    { id:'new',   label:"I'm new to accounting software",        color:C.cyan   },
+    { id:'qb',    label:'Switching from QuickBooks',              color:C.mint, badge:'QB' },
+    { id:'other', label:'Switching from another tool',            color:C.purple },
+  ];
+
+  return (
+    <div style={{ animation:'fadeUp 0.5s ease both' }}>
+      <Steps current={0}/>
+
+      <div style={{ textAlign:'center', marginBottom:36 }}>
+        <div style={{ marginBottom:14 }}><JAXBadge/></div>
+        <h1 style={{ fontSize:34, fontWeight:800, color:C.white, margin:'0 0 12px', lineHeight:1.1, letterSpacing:'-0.03em' }}>
+          Smart setup,<br/>
+          <span style={{ background:`linear-gradient(90deg,${C.cyan},${C.purple})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>built for you</span>
+        </h1>
+        <p style={{ fontSize:15, color:C.whiteMid, margin:0, lineHeight:1.6, maxWidth:360, marginLeft:'auto', marginRight:'auto' }}>
+          Tell us where you're coming from and we'll personalise every step of your Xero experience.
+        </p>
+      </div>
+
+      <div style={{ marginBottom:28 }}>
+        <p style={{ fontSize:13, fontWeight:600, color:C.whiteOff, marginBottom:12 }}>Where are you coming from?</p>
+        <div style={{ display:'flex', gap:8 }}>
+          {opts.map(opt => (
+            <div key={opt.id} onClick={() => setSwitcher(opt.id)} style={{
+              flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:10, padding:'16px 10px',
+              borderRadius:12, cursor:'pointer', textAlign:'center',
+              border:`1.5px solid ${switcher === opt.id ? opt.color : 'rgba(255,255,255,0.1)'}`,
+              background: switcher === opt.id ? `rgba(${opt.id==='qb'?'0,212,168':opt.id==='new'?'0,200,240':'155,92,250'},0.1)` : 'rgba(255,255,255,0.04)',
+              transition:'all 0.2s ease',
+            }}
+            onMouseEnter={e=>{ if(switcher!==opt.id) e.currentTarget.style.background='rgba(255,255,255,0.07)'; }}
+            onMouseLeave={e=>{ if(switcher!==opt.id) e.currentTarget.style.background='rgba(255,255,255,0.04)'; }}>
+              {opt.badge
+                ? <div style={{ width:32, height:32, borderRadius:8, background:C.qbGreen, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, color:'white' }}>QB</div>
+                : <div style={{ width:32, height:32, borderRadius:'50%', border:`2px solid ${switcher===opt.id ? opt.color : 'rgba(255,255,255,0.2)'}`, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.2s' }}>
+                    {switcher === opt.id && <div style={{ width:16, height:16, borderRadius:'50%', background:opt.color, animation:'bounceIn 0.25s ease' }}/>}
+                  </div>
+              }
+              <span style={{ fontSize:12, fontWeight:switcher===opt.id?700:500, color:switcher===opt.id?C.white:C.whiteMid, lineHeight:1.4 }}>{opt.id==='new'?'New to accounting':opt.id==='qb'?'Switching from QuickBooks':'From another tool'}</span>
+            </div>
+          ))}
+        </div>
+
+        {switcher === 'qb' && (
+          <div style={{ marginTop:12, padding:'12px 16px', borderRadius:10, background:C.qbSoft, border:`1px solid ${C.qbBorder}`, animation:'reveal 0.3s ease' }}>
+            <p style={{ fontSize:13, color:C.whiteOff, lineHeight:1.5, margin:0 }}>
+              <span style={{ color:C.mint, fontWeight:700 }}>We'll speak your language.</span> We translate your QuickBooks know-how every step of the way — so getting up and running feels familiar from day one.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <PrimaryBtn onClick={() => onContinue(switcher)} disabled={!switcher}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2l6 6-6 6M3 8h11" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        Let's set up Xero
+      </PrimaryBtn>
+
+
+    </div>
+  );
+};
+
+// ── SCREEN 1: Discover ─────────────────────────────────────────────
+const Screen1 = ({ switcher, onContinue, onBack }) => {
+  const [biz, setBiz] = useState('');
+  const [phase, setPhase] = useState('input'); // input | searching | found
+  const [reveal, setReveal] = useState(0);
+  const inputRef = useRef(null);
+  const isQB = switcher === 'qb';
+  const d = DEMO;
+
+  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 300); }, []);
+  useEffect(() => {
+    if (phase === 'found') {
+      let i = 0;
+      const iv = setInterval(() => { i++; setReveal(i); if (i >= 10) clearInterval(iv); }, 180);
+      return () => clearInterval(iv);
+    }
+  }, [phase]);
+
+  const doSearch = () => {
+    if (!biz.trim()) return;
+    setPhase('searching');
+    setTimeout(() => setPhase('found'), 1400);
+  };
+
+  const isFound = phase === 'found';
+  const isSearching = phase === 'searching';
+
+  const R = ({ step, delay=0, children }) => (
+    <div style={{
+      opacity: reveal >= step ? 1 : 0,
+      transform: reveal >= step ? 'none' : 'translateY(12px)',
+      transition: `all 0.4s cubic-bezier(0.23,1,0.32,1) ${delay}s`,
+    }}>{children}</div>
+  );
+
+  return (
+    <div style={{ animation:'fadeUp 0.4s ease both' }}>
+      <Steps current={1}/>
+      <div style={{ marginBottom:24 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+          <JAXBadge/>
+          {isQB && <div style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:20, background:C.qbSoft, border:`1px solid ${C.qbBorder}` }}><span style={{ fontSize:10, fontWeight:700, color:C.mint, letterSpacing:'0.06em' }}>QB MODE</span></div>}
+        </div>
+        <h2 style={{ fontSize:24, fontWeight:800, color:C.white, margin:'0 0 6px', letterSpacing:'-0.02em' }}>
+          {isFound ? `Found you! 👋` : "What's your business called?"}
+        </h2>
+        <p style={{ fontSize:14, color:C.whiteMid, margin:0, lineHeight:1.5 }}>
+          {isFound ? "Here's what we found — check everything looks right." : "We'll look you up and configure Xero automatically."}
+        </p>
+      </div>
+
+      {/* Search input */}
+      <div style={{ position:'relative', marginBottom:isFound?20:8 }}>
+        <input ref={inputRef} type="text" value={biz} disabled={isSearching}
+          onChange={e => { setBiz(e.target.value); if (phase !== 'input') { setPhase('input'); setReveal(0); } }}
+          onKeyDown={e => { if (e.key === 'Enter' && biz.trim() && !isSearching) doSearch(); }}
+          placeholder="e.g. Martinez Landscaping"
+          style={{
+            width:'100%', padding:'13px 52px 13px 18px', fontSize:15, fontWeight:500,
+            background:'rgba(255,255,255,0.07)', border:`1.5px solid ${isFound ? C.cyan : 'rgba(255,255,255,0.15)'}`,
+            borderRadius:12, color:C.white, transition:'all 0.25s', boxSizing:'border-box',
+          }}
+          onFocus={e => { if(!isFound) e.target.style.borderColor='rgba(0,200,240,0.5)'; e.target.style.background='rgba(255,255,255,0.09)'; }}
+          onBlur={e => { if(!isFound) e.target.style.borderColor='rgba(255,255,255,0.15)'; e.target.style.background='rgba(255,255,255,0.07)'; }}
+        />
+        <div style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)' }}>
+          {isSearching
+            ? <div style={{ width:22, height:22, borderRadius:'50%', border:'2.5px solid rgba(255,255,255,0.15)', borderTopColor:C.cyan, animation:'spin 0.7s linear infinite' }}/>
+            : isFound
+              ? <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="11" fill={C.cyan}/><path d="M6 11.5l3.5 3.5 6.5-7" stroke={C.navy} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              : biz.trim()
+                ? <button onClick={doSearch} style={{ width:32, height:32, borderRadius:'50%', background:`linear-gradient(135deg,${C.cyan},#00A8E8)`, border:'none', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'transform 0.15s', boxShadow:`0 2px 10px ${C.cyan}50` }} onMouseEnter={e=>e.currentTarget.style.transform='scale(1.1)'} onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke={C.navy} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                : null}
+        </div>
+      </div>
+
+      {isSearching && (
+        <div style={{ textAlign:'center', padding:'20px 0', animation:'fadeIn 0.3s ease' }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:10, padding:'10px 20px', borderRadius:20, background:'rgba(0,200,240,0.08)', border:'1px solid rgba(0,200,240,0.2)' }}>
+            <div style={{ width:16, height:16, borderRadius:'50%', border:'2px solid rgba(0,200,240,0.3)', borderTopColor:C.cyan, animation:'spin 0.7s linear infinite' }}/>
+            <span style={{ fontSize:13, color:C.whiteMid }}>Searching the web for your business…</span>
+          </div>
+        </div>
+      )}
+
+      {isFound && (
+        <div>
+          {/* Delight banner */}
+          <R step={1}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10, paddingBottom:10, borderBottom:'1px solid rgba(0,200,240,0.15)' }}>
+              <div style={{ width:20, height:20, borderRadius:'50%', background:C.cyan, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 5.5l3 3 5-5.5" stroke={C.navy} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </div>
+              <span style={{ fontSize:15, fontWeight:700, color:C.cyan }}>We've already personalized your setup based on your business</span>
+            </div>
+          </R>
+
+          {/* Business summary — 2 row clean layout */}
+          <R step={1}>
+            <div style={{ padding:'12px 16px', borderRadius:12, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', marginBottom:12 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+                <div style={{ width:30, height:30, borderRadius:8, background:C.cyan, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:C.navy, flexShrink:0 }}>ML</div>
+                <span style={{ fontSize:15, fontWeight:700, color:C.white, flex:1 }}>{d.company_name}</span>
+                <div style={{ position:'relative', flexShrink:0 }}>
+                  <button id="edit-tip-btn" style={{ display:'flex', alignItems:'center', gap:4, padding:'4px 10px', fontSize:11, fontWeight:700, color:C.cyan, background:'rgba(0,200,240,0.1)', border:'1px solid rgba(0,200,240,0.2)', borderRadius:6, cursor:'pointer' }}
+                    onMouseEnter={e=>{ const t=document.getElementById('edit-tip'); if(t) t.style.opacity='1'; }}
+                    onMouseLeave={e=>{ const t=document.getElementById('edit-tip'); if(t) t.style.opacity='0'; }}>
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M8.5 1.5L10.5 3.5M1 11L1.5 8.5L9 1L11 3L3.5 10.5L1 11Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    Edit
+                  </button>
+                  <div id="edit-tip" style={{ position:'absolute', right:0, top:'calc(100% + 6px)', whiteSpace:'nowrap', padding:'7px 12px', borderRadius:8, background:'rgba(19,18,74,0.98)', border:'1px solid rgba(255,255,255,0.15)', fontSize:11, color:C.whiteOff, opacity:0, transition:'opacity 0.2s', pointerEvents:'none', zIndex:10, boxShadow:'0 8px 24px rgba(0,0,0,0.5)' }}>
+                    ✏️ You can edit any of these details right here
+                  </div>
+                </div>
+              </div>
+              <div style={{ paddingLeft:40, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
+                <span style={{ fontSize:12, color:C.whiteMid }}>🌿 {d.industry}</span>
+                <span style={{ color:'rgba(255,255,255,0.2)' }}>·</span>
+                <span style={{ fontSize:12, color:C.whiteMid }}>📍 {d.location.city}, {d.location.state_code}</span>
+                <span style={{ color:'rgba(255,255,255,0.2)' }}>·</span>
+                <span style={{ fontSize:12, color:C.whiteMid }}>👥 {d.estimated_size}</span>
+              </div>
+              <div style={{ paddingLeft:40, marginTop:6, fontSize:12, color:C.whiteMid, lineHeight:1.5 }}>{d.description}</div>
+            </div>
+          </R>
+
+          {/* Tax config — editable sub-item style */}
+          <R step={3}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', borderRadius:10, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', marginBottom:14 }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke={C.mint} strokeWidth="1.5"/><path d="M4 7l2 2 4-4" stroke={C.mint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <span style={{ fontSize:13, color:C.whiteOff, flex:1 }}><span style={{ fontWeight:700, color:C.white }}>{d.tax.name}</span> · {d.tax.rate}</span>
+              <button style={{ fontSize:11, fontWeight:600, color:C.whiteMid, background:'none', border:'none', cursor:'pointer', padding:'2px 6px' }}>Edit</button>
+            </div>
+          </R>
+
+          {/* Chart of accounts */}
+          <R step={4}>
+            <div style={{ marginBottom:14 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+                <div style={{ width:20, height:20, borderRadius:'50%', background:C.cyan, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 5.5l3 3 5-5.5" stroke={C.navy} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <p style={{ fontSize:15, fontWeight:700, color:C.cyan, margin:0 }}>Chart of accounts — pre-configured for {d.industry}</p>
+              </div>
+              <div style={{ borderRadius:10, border:'1px solid rgba(255,255,255,0.08)', overflow:'hidden' }}>
+                {d.accounts.map((a,i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 16px', borderBottom:i<d.accounts.length-1?'1px solid rgba(255,255,255,0.05)':'none' }}>
+                    <span style={{ fontSize:13, color:C.white, fontWeight:500 }}>{a.name}</span>
+                    <span style={{ fontSize:11, fontWeight:700, padding:'2px 10px', borderRadius:4, color:a.type==='Revenue'?C.mint:C.coral, background:a.type==='Revenue'?'rgba(0,212,168,0.12)':'rgba(255,92,120,0.12)', flexShrink:0 }}>{a.type}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </R>
+
+          {/* Features */}
+          <R step={6}>
+            <div style={{ marginBottom:20 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                <div style={{ width:20, height:20, borderRadius:'50%', background:C.cyan, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 5.5l3 3 5-5.5" stroke={C.navy} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <p style={{ fontSize:15, fontWeight:700, color:C.cyan, margin:0 }}>Suggested for your profile{isQB?' — with QuickBooks translations':''}</p>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {d.features.map((f,i) => (
+                  <div key={i} style={{ borderRadius:10, border:'1px solid rgba(255,255,255,0.08)', overflow:'hidden', display:'flex' }}>
+                    {/* Stat — takes ~40% width */}
+                    <div style={{ width:'42%', flexShrink:0, padding:'18px 16px', background:'rgba(0,200,240,0.07)', display:'flex', flexDirection:'column', justifyContent:'center', borderRight:'1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize:42, fontWeight:800, color:C.cyan, lineHeight:1, letterSpacing:'-0.03em' }}><Counter target={f.stat} suffix={f.suffix} duration={900+i*200}/></div>
+                      <div style={{ fontSize:11, color:C.whiteOff, fontWeight:500, marginTop:6, lineHeight:1.4 }}>{f.stat_label}</div>
+                    </div>
+                    {/* Content — 60% */}
+                    <div style={{ flex:1, minWidth:0, padding:'16px 16px' }}>
+                      <div style={{ fontSize:16, fontWeight:800, color:C.white, marginBottom:5, letterSpacing:'-0.01em' }}>{f.feature}</div>
+                      <div style={{ fontSize:12, color:C.whiteMid, lineHeight:1.5, marginBottom: isQB ? 8 : 0 }}>{f.desc}</div>
+                      {isQB && <div style={{ fontSize:11, color:C.mint, fontWeight:600 }}>QB calls it: <span style={{ fontStyle:'italic', opacity:0.85 }}>{f.qb_from}</span></div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </R>
+
+          <R step={8}>
+            <div style={{ display:'flex', gap:8 }}>
+              <GhostBtn onClick={onBack}>← Back</GhostBtn>
+              <div style={{ flex:1 }}>
+                <PrimaryBtn onClick={onContinue}>
+                  Complete setup
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </PrimaryBtn>
+              </div>
+            </div>
+          </R>
+        </div>
+      )}
+
+      {phase === 'input' && (
+        <p style={{ fontSize:12, color:C.whiteDim, marginTop:8, display:'flex', alignItems:'center', gap:5 }}>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 0L9.5 5.5L15 7L9.5 8.5L8 14L6.5 8.5L1 7L6.5 5.5L8 0Z" fill={C.whiteDim}/></svg>
+          We search the web to personalise your whole setup instantly
+        </p>
+      )}
+    </div>
+  );
+};
+
+// ── SCREEN 2: Dashboard placeholder ───────────────────────────────
+const Screen2 = ({ switcher, onReset, onToDashboard }) => {
+  const [confetti, setConfetti] = useState(true);
+  const isQB = switcher === 'qb';
+  useEffect(() => { setTimeout(() => setConfetti(false), 3500); }, []);
+
+  return (
+    <div style={{ animation:'fadeUp 0.5s ease both', textAlign:'center' }}>
+      {confetti && <Confetti/>}
+      <Steps current={2}/>
+
+      {/* Celebration */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ width:72, height:72, borderRadius:'50%', background:`linear-gradient(135deg,${C.cyan},${C.purple})`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', animation:'bounceIn 0.6s ease', boxShadow:`0 8px 32px rgba(0,200,240,0.4)` }}>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M6 16.5L13 23.5L26 9" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </div>
+        <h1 style={{ fontSize:28, fontWeight:800, color:C.white, margin:'0 0 8px', letterSpacing:'-0.03em' }}>You're all set!</h1>
+        <p style={{ fontSize:14, color:C.whiteMid, margin:0, lineHeight:1.6 }}>
+          Xero is personalised for <span style={{ color:C.white, fontWeight:700 }}>{DEMO.company_name}</span>
+          {isQB && <><br/><span style={{ color:C.mint, fontSize:13 }}>QuickBooks translations active ✓</span></>}
+        </p>
+      </div>
+
+      {/* Checklist */}
+      <div style={{ marginBottom:24, display:'flex', flexDirection:'column', gap:10 }}>
+        {[
+          { label:'Business found & verified', sub:'Martinez Landscaping · Austin, TX' },
+          { label:'Chart of accounts pre-configured', sub:'5 accounts set up for Landscaping & Lawn Care' },
+          { label:'Features recommended for your profile', sub:'Tracking Categories, Quotes, Repeating Invoices' },
+          { label:'Tax rate configured', sub:'Texas Sales Tax at 8.25%' },
+        ].map((item, i) => (
+          <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'12px 16px', borderRadius:10, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', animation:`fadeUp 0.4s ease ${i*0.08}s both`, textAlign:'left' }}>
+            <div style={{ width:22, height:22, borderRadius:'50%', background:C.mint, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5l3 3 5-6" stroke={C.navy} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
+            <div>
+              <div style={{ fontSize:14, fontWeight:700, color:C.white }}>{item.label}</div>
+              <div style={{ fontSize:12, color:C.whiteDim, marginTop:2 }}>{item.sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <PrimaryBtn onClick={onToDashboard} style={{ marginBottom:10 }}>
+        Go to Xero dashboard →
+      </PrimaryBtn>
+      <button onClick={onReset} style={{ width:'100%', padding:'10px', fontSize:13, fontWeight:500, color:C.whiteDim, background:'transparent', border:'none', cursor:'pointer', fontFamily:"'Space Grotesk',sans-serif" }}
+        onMouseEnter={e=>e.currentTarget.style.color=C.whiteMid}
+        onMouseLeave={e=>e.currentTarget.style.color=C.whiteDim}>
+        ← Run demo again
+      </button>
+    </div>
+  );
+};
+
+// ── SCREEN 3: Dashboard ───────────────────────────────────────────
+const Screen3 = ({ onReset }) => {
+  const [activeNav, setActiveNav] = useState('Home');
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [qbMode, setQbMode] = useState(localStorage.getItem('xero_ob_sw') === 'qb');
+  const [dismissedBanner, setDismissedBanner] = useState(false);
+  const isQB = qbMode;
+  const d = DEMO;
+
+  const invoiceData = { awaiting: 4250, overdueAmt: 850, awaitingCount: 3, overdueCount: 1 };
+  const billData    = { awaiting: 1200, overdueAmt: 0,   awaitingCount: 2, overdueCount: 0 };
+  const recentPayments = [
+    { name:'Oakridge Properties', amt:'$2,400', date:'Today' },
+    { name:'Sunrise HOA',         amt:'$850',   date:'Yesterday' },
+    { name:'City Parks Dept.',    amt:'$3,200', date:'Apr 17' },
+  ];
+
+  const QBTooltip = ({ label, children }) => {
+    const [show, setShow] = useState(false);
+    if (!qbMode) return <>{children}</>;
+    return (
+      <span style={{ position:'relative', display:'inline-flex', alignItems:'center', gap:5 }}
+        onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+        {children}
+        <span style={{ width:7, height:7, borderRadius:'50%', background:C.mint, display:'inline-block', cursor:'help', flexShrink:0, animation:'pulse 2s ease-in-out infinite' }}/>
+        {show && (
+          <span style={{ position:'absolute', bottom:'calc(100% + 8px)', left:0, zIndex:400, whiteSpace:'nowrap', padding:'7px 12px', borderRadius:8, background:'rgba(10,10,40,0.98)', border:`1px solid ${C.qbBorder}`, fontSize:11, color:C.whiteOff, boxShadow:'0 8px 28px rgba(0,0,0,0.6)', pointerEvents:'none', animation:'fadeIn 0.15s ease' }}>
+            <span style={{ color:C.mint, fontWeight:700 }}>QB calls this:</span> {label}
+          </span>
+        )}
+      </span>
+    );
+  };
+
+  const navItems = [
+    { label:'Home' },
+    { label:'Sales' },
+    { label:'Purchases', sub:[
+      { name:'Purchases overview' },
+      { name:'Bills',                qb:'Vendor Bills' },
+      { name:'Online bill payments' },
+      { name:'Purchase orders',      qb:'Purchase Orders' },
+      { name:'Expenses',             qb:'Expenses' },
+      { name:'Suppliers',            qb:'Vendors' },
+    ]},
+    { label:'Reporting' },
+    { label:'Accounting', sub:[
+      { name:'Bank accounts' },
+      { name:'Bank rules' },
+      { name:'Chart of accounts',    qb:'Chart of Accounts' },
+      { name:'Fixed assets' },
+      { name:'Accounting settings' },
+    ]},
+    { label:'Tax' },
+    { label:'Contacts' },
+    { label:'Projects' },
+  ];
+
+  const DropdownItem = ({ s }) => {
+    const [tipShow, setTipShow] = useState(false);
+    return (
+      <div onClick={()=>setActiveDropdown(null)}
+        onMouseEnter={e=>{ e.currentTarget.style.background='rgba(0,200,240,0.08)'; setTipShow(true); }}
+        onMouseLeave={e=>{ e.currentTarget.style.background='transparent'; setTipShow(false); }}
+        style={{ padding:'9px 18px', fontSize:13, color:'rgba(255,255,255,0.85)', cursor:'pointer', fontWeight:500, position:'relative', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <span>{s.name}</span>
+        {s.qb && qbMode && tipShow && (
+          <div style={{ position:'absolute', left:'calc(100% + 8px)', top:'50%', transform:'translateY(-50%)', whiteSpace:'nowrap', padding:'6px 10px', borderRadius:7, background:'rgba(10,10,40,0.98)', border:`1px solid ${C.qbBorder}`, fontSize:11, color:C.mint, fontWeight:700, boxShadow:'0 6px 20px rgba(0,0,0,0.6)', zIndex:300, pointerEvents:'none' }}>
+            QB: {s.qb}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const BarChart = ({ color='#00C8F0', data=[12,28,8,42,18,55,30] }) => {
+    const bars = data;
+    const labels = ['Older','This week','Apr 18–24','Apr 25–May 1','From May 2','',''];
+    return (
+      <svg viewBox="0 0 260 80" style={{ width:'100%', height:80 }}>
+        {bars.map((h,i) => (
+          <rect key={i} x={i*38+4} y={80-h} width={28} height={h} rx={4}
+            fill={color} opacity={i===4||i===5?0.9:0.3}/>
+        ))}
+        {[0,28,55].map((y,i) => (
+          <line key={i} x1="0" y1={80-y} x2="260" y2={80-y} stroke="rgba(255,255,255,0.08)" strokeWidth="1"/>
+        ))}
+      </svg>
+    );
+  };
+
+  return (
+    <div style={{ minHeight:'100vh', background:'#0C0B2E', fontFamily:"'Space Grotesk',sans-serif", animation:'fadeIn 0.4s ease' }} onClick={() => setActiveDropdown(null)}>
+
+      {/* Top nav */}
+      <div style={{ background:'rgba(13,12,46,0.95)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(255,255,255,0.08)', position:'sticky', top:0, zIndex:100 }}>
+        <div style={{ maxWidth:1200, margin:'0 auto', padding:'0 24px', display:'flex', alignItems:'center', height:52, gap:0 }}>
+          <XeroWordmark size={20}/>
+          <div style={{ width:1, height:28, background:'rgba(255,255,255,0.12)', margin:'0 16px' }}/>
+          {/* Org badge */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, padding:'5px 10px', borderRadius:8, background:'rgba(0,200,240,0.1)', border:'1px solid rgba(0,200,240,0.2)', cursor:'pointer', marginRight:20 }}>
+            <div style={{ width:22, height:22, borderRadius:6, background:C.cyan, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:C.navy }}>ML</div>
+            <span style={{ fontSize:13, fontWeight:600, color:C.white }}>Martinez Landscaping</span>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5l3 3 3-3" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </div>
+          {/* Nav items */}
+          <div style={{ display:'flex', alignItems:'stretch', flex:1, height:'100%' }}>
+            {navItems.map(item => (
+              <div key={item.label} style={{ position:'relative' }}>
+                <button onClick={e => { e.stopPropagation(); setActiveNav(item.label); setActiveDropdown(activeDropdown===item.label?null:item.sub?item.label:null); }}
+                  style={{ height:'100%', padding:'0 14px', fontSize:13, fontWeight:600, color: activeNav===item.label ? C.cyan : 'rgba(255,255,255,0.6)', background:'transparent', border:'none', cursor:'pointer', borderBottom: activeNav===item.label ? `2px solid ${C.cyan}` : '2px solid transparent', transition:'all 0.15s', display:'flex', alignItems:'center', gap:4 }}>
+                  {item.label}
+                  {item.sub && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </button>
+                {item.sub && activeDropdown === item.label && (
+                  <div onClick={e=>e.stopPropagation()} style={{ position:'absolute', top:'100%', left:0, minWidth:200, background:'rgba(19,18,74,0.98)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'8px 0', boxShadow:'0 16px 48px rgba(0,0,0,0.6)', zIndex:200, animation:'reveal 0.2s ease' }}>
+                    {item.sub.map((s,i) => <DropdownItem key={i} s={s}/>)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          {/* Right icons */}
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'rgba(255,255,255,0.5)', padding:'5px 10px', border:'1px solid rgba(255,255,255,0.12)', borderRadius:6, cursor:'pointer' }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M9 9l2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              You're in a free trial
+            </div>
+            <button style={{ padding:'6px 14px', fontSize:12, fontWeight:700, color:C.navy, background:C.cyan, border:'none', borderRadius:6, cursor:'pointer' }}>Buy now</button>
+            <div style={{ width:30, height:30, borderRadius:'50%', background:C.coral, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:800, color:'white', cursor:'pointer' }}>JW</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Welcome bubble */}
+      <div style={{ maxWidth:1200, margin:'0 auto', padding:'20px 24px 0' }}>
+        <div style={{ padding:'16px 22px', borderRadius:14, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.09)', display:'flex', alignItems:'center', gap:16, marginBottom:0 }}>
+          <div style={{ width:42, height:42, borderRadius:'50%', background:`linear-gradient(135deg,${C.cyan},${C.purple})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>👋</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:16, fontWeight:700, color:C.white, marginBottom:2 }}>Welcome to Xero, {d.company_name}</div>
+            <div style={{ fontSize:13, color:C.whiteMid }}>Your account is personalized and ready to go — <span style={{ color:C.cyan, fontWeight:600 }}>here's your business at a glance.</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Page content */}
+      <div style={{ maxWidth:1200, margin:'0 auto', padding:'20px 24px' }}>
+        {/* Page header */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+            <div style={{ width:40, height:40, borderRadius:10, background:C.cyan, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, color:C.navy }}>ML</div>
+            <div>
+              <h1 style={{ fontSize:22, fontWeight:800, color:C.white, letterSpacing:'-0.02em', margin:0 }}>{d.company_name}</h1>
+              <div style={{ fontSize:12, color:C.whiteDim, marginTop:1 }}>Landscaping & Lawn Care · Austin, TX · Texas Sales Tax 8.25%</div>
+            </div>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            {/* QB toggle */}
+            {localStorage.getItem('xero_ob_sw') === 'qb' && (
+              <button onClick={()=>setQbMode(m=>!m)} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', fontSize:12, fontWeight:700, color: qbMode ? C.mint : C.whiteDim, background: qbMode ? 'rgba(0,212,168,0.1)' : 'rgba(255,255,255,0.05)', border:`1px solid ${qbMode ? 'rgba(0,212,168,0.3)' : 'rgba(255,255,255,0.12)'}`, borderRadius:8, cursor:'pointer', transition:'all 0.2s' }}>
+                <div style={{ width:28, height:16, borderRadius:8, background: qbMode ? C.mint : 'rgba(255,255,255,0.15)', position:'relative', transition:'background 0.2s', flexShrink:0 }}>
+                  <div style={{ position:'absolute', top:2, left: qbMode ? 14 : 2, width:12, height:12, borderRadius:'50%', background:'white', transition:'left 0.2s' }}/>
+                </div>
+                QB translations
+              </button>
+            )}
+            <button onClick={onReset} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', fontSize:13, fontWeight:600, color:C.whiteMid, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:8, cursor:'pointer' }}>
+              ← Back to demo
+            </button>
+          </div>
+        </div>
+
+        {/* JAX features banner */}
+        {!dismissedBanner && (
+          <div style={{ marginBottom:20, borderRadius:14, background:'rgba(0,200,240,0.06)', border:'1px solid rgba(0,200,240,0.18)', overflow:'hidden', animation:'fadeUp 0.4s ease' }}>
+            <div style={{ padding:'14px 18px', borderBottom:'1px solid rgba(0,200,240,0.12)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 0L9.5 5.5L15 7L9.5 8.5L8 14L6.5 8.5L1 7L6.5 5.5L8 0Z" fill={C.cyan}/></svg>
+                <span style={{ fontSize:13, fontWeight:700, color:C.cyan }}>JAX suggests these features for {d.company_name}</span>
+              </div>
+              <button onClick={()=>setDismissedBanner(true)} style={{ background:'none', border:'none', color:C.whiteDim, cursor:'pointer', fontSize:18, lineHeight:1, padding:4 }}>×</button>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:0 }}>
+              {[
+                { stat:'93%', label:'of landscaping businesses', feature:'Tracking Categories', desc:'Track P&L per job site', qb:'Classes in QB',
+                  icon: <svg width="72" height="56" viewBox="0 0 72 56" fill="none">
+                    <rect width="72" height="56" rx="10" fill="rgba(0,200,240,0.08)"/>
+                    {/* Bar chart - 3 job sites */}
+                    <rect x="10" y="32" width="12" height="16" rx="4" fill="#FF5C78"/>
+                    <rect x="28" y="20" width="12" height="28" rx="4" fill="#00C8F0"/>
+                    <rect x="46" y="10" width="12" height="38" rx="4" fill="#FFB800"/>
+                    {/* Top markers */}
+                    <circle cx="54" cy="7" r="4" fill="#FFB800"/>
+                    <path d="M52 7l1.5 1.5L56 5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    {/* Base line */}
+                    <line x1="6" y1="48" x2="66" y2="48" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                },
+                { stat:'10+', label:'quotes sent per week avg', feature:'Quotes', desc:'Convert to invoices instantly', qb:'Estimates in QB',
+                  icon: <svg width="72" height="56" viewBox="0 0 72 56" fill="none">
+                    <rect width="72" height="56" rx="10" fill="rgba(155,92,250,0.08)"/>
+                    {/* Document */}
+                    <rect x="14" y="8" width="32" height="40" rx="5" fill="rgba(155,92,250,0.25)" stroke="rgba(155,92,250,0.5)" strokeWidth="1.5"/>
+                    {/* Lines */}
+                    <rect x="20" y="17" width="20" height="2.5" rx="1.25" fill="rgba(255,255,255,0.5)"/>
+                    <rect x="20" y="23" width="14" height="2" rx="1" fill="rgba(255,255,255,0.3)"/>
+                    <rect x="20" y="28" width="17" height="2" rx="1" fill="rgba(255,255,255,0.3)"/>
+                    {/* Arrow */}
+                    <circle cx="52" cy="36" r="11" fill="#00C8F0"/>
+                    <path d="M48 36h8M53 32l4 4-4 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                },
+                { stat:'87%', label:'of lawn care businesses', feature:'Repeating Invoices', desc:'Automate recurring billing', qb:'Memorized Transactions',
+                  icon: <svg width="72" height="56" viewBox="0 0 72 56" fill="none">
+                    <rect width="72" height="56" rx="10" fill="rgba(0,212,168,0.08)"/>
+                    {/* Circular repeat arrows */}
+                    <path d="M36 12a16 16 0 0 1 16 16" stroke="#00D4A8" strokeWidth="3" strokeLinecap="round"/>
+                    <path d="M36 44a16 16 0 0 1-16-16" stroke="#00D4A8" strokeWidth="3" strokeLinecap="round"/>
+                    {/* Arrow heads */}
+                    <path d="M49 24l3 4 4-2" stroke="#00D4A8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M23 32l-3-4-4 2" stroke="#00D4A8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    {/* Center dollar */}
+                    <circle cx="36" cy="28" r="8" fill="rgba(0,212,168,0.2)" stroke="#00D4A8" strokeWidth="1.5"/>
+                    <path d="M36 23v10M33 25.5c0-1.4 1.3-2.5 3-2.5s3 1.1 3 2.5-1.3 2.5-3 2.5-3 1.1-3 2.5 1.3 2.5 3 2.5 3-1.1 3-2.5" stroke="#00D4A8" strokeWidth="1.3" strokeLinecap="round"/>
+                  </svg>
+                },
+              ].map((f,i) => (
+                <div key={i} style={{ padding:'20px 22px', borderRight:i<2?'1px solid rgba(0,200,240,0.12)':'none', cursor:'pointer', transition:'background 0.15s', display:'flex', gap:18, alignItems:'flex-start' }}
+                  onMouseEnter={e=>e.currentTarget.style.background='rgba(0,200,240,0.08)'}
+                  onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                  {/* Illustration */}
+                  <div style={{ flexShrink:0 }}>{f.icon}</div>
+                  {/* Content */}
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:34, fontWeight:800, color:C.cyan, letterSpacing:'-0.03em', lineHeight:1, marginBottom:2 }}>{f.stat}</div>
+                    <div style={{ fontSize:12, color:C.whiteMid, fontWeight:500, marginBottom:10, lineHeight:1.35 }}>{f.label}</div>
+                    <div style={{ fontSize:14, fontWeight:700, color:C.white, marginBottom:3 }}>{f.feature}</div>
+                    <div style={{ fontSize:12, color:C.whiteMid, marginBottom:isQB&&f.qb?6:12 }}>{f.desc}</div>
+                    {isQB && <div style={{ fontSize:11, color:C.mint, fontWeight:600, marginBottom:12 }}>{f.qb}</div>}
+                    <button style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 14px', fontSize:12, fontWeight:700, color:C.navy, background:C.cyan, border:'none', borderRadius:6, cursor:'pointer' }}>
+                      Set up →
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Business Overview header */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+          <h2 style={{ fontSize:17, fontWeight:700, color:C.white, letterSpacing:'-0.01em' }}>Business Overview</h2>
+          <button style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', fontSize:12, fontWeight:600, color:C.cyan, background:'rgba(0,200,240,0.08)', border:`1px solid rgba(0,200,240,0.25)`, borderRadius:8, cursor:'pointer' }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8.5 1.5L10.5 3.5M1 11L1.5 8.5L9 1L11 3L3.5 10.5L1 11Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Edit homepage
+          </button>
+        </div>
+
+        {/* Dashboard grid */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 340px', gap:16, alignItems:'start' }}>
+
+          {/* Invoices & Bills cards */}
+          {[
+            { title:'Invoices owed to you', qbLabel:'Invoices', color:C.cyan,  data:invoiceData, bars:[8,22,14,38,52,60,44], drafts:'2 drafts', approval:'1 awaiting approval', btn1:'New invoice', btn2:'View all invoices' },
+            { title:'Bills to pay',          qbLabel:'Bills',    color:C.coral, data:billData,    bars:[5,18,10,28,20,32,18], drafts:'0 drafts', approval:'0 awaiting approval', btn1:'Add bills',   btn2:'Pay bills' },
+          ].map((card,ci) => (
+            <div key={ci} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden', backdropFilter:'blur(12px)' }}>
+              {/* Sample data note */}
+              <div style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderBottom:'1px solid rgba(255,255,255,0.06)', marginBottom:14 }}>
+                <span style={{ fontSize:11 }}>✨</span>
+                <span style={{ fontSize:11, color:C.whiteMid, fontWeight:500 }}>Sample data — connect your bank to see your real numbers</span>
+              </div>
+              <div style={{ padding:'16px 20px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+                <div style={{ display:'flex', alignItems:'center' }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:C.white }}><QBTooltip label={card.qbLabel}>{card.title}</QBTooltip></span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="3" r="1.2" fill="rgba(255,255,255,0.3)"/><circle cx="8" cy="8" r="1.2" fill="rgba(255,255,255,0.3)"/><circle cx="8" cy="13" r="1.2" fill="rgba(255,255,255,0.3)"/></svg>
+              </div>
+              <div style={{ display:'flex', gap:28, marginBottom:16 }}>
+                <div>
+                  <div style={{ fontSize:22, fontWeight:800, color:C.white, letterSpacing:'-0.02em' }}>${card.data.awaiting.toLocaleString()}</div>
+                  <div style={{ fontSize:11, color:card.color, fontWeight:600, marginTop:2 }}>{card.data.awaitingCount} awaiting payment</div>
+                </div>
+                <div>
+                  <div style={{ fontSize:22, fontWeight:800, color:C.white, letterSpacing:'-0.02em' }}>${card.data.overdueAmt.toLocaleString()}</div>
+                  <div style={{ fontSize:11, color:card.color, fontWeight:600, marginTop:2 }}>{card.data.overdueCount} overdue</div>
+                </div>
+              </div>
+              <BarChart color={card.color} data={card.bars}/>
+              <div style={{ borderTop:'1px solid rgba(255,255,255,0.07)', paddingTop:14, marginTop:4 }}>
+                {[card.drafts, card.approval].map((row,i) => (
+                  <div key={i} style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                    <span style={{ fontSize:12, color:card.color, cursor:'pointer', fontWeight:500 }}>{row}</span>
+                    <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>—</span>
+                  </div>
+                ))}
+                <div style={{ display:'flex', gap:8, marginTop:12 }}>
+                  <button style={{ padding:'7px 14px', fontSize:12, fontWeight:600, color:C.white, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:6, cursor:'pointer' }}>{card.btn1}</button>
+                  <button style={{ padding:'7px 14px', fontSize:12, fontWeight:600, color:C.white, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:6, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                    {card.btn2}
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          ))}
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            {/* Tasks */}
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, padding:'20px 22px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                <div style={{ display:'flex', alignItems:'center' }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:C.white }}><QBTooltip label="To Do">Tasks</QBTooltip></span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="3" r="1.2" fill="rgba(255,255,255,0.3)"/><circle cx="8" cy="8" r="1.2" fill="rgba(255,255,255,0.3)"/><circle cx="8" cy="13" r="1.2" fill="rgba(255,255,255,0.3)"/></svg>
+              </div>
+              {/* JAX suggestion */}
+              <div style={{ padding:'12px 14px', borderRadius:10, background:'rgba(0,200,240,0.08)', border:'1px solid rgba(0,200,240,0.2)', marginBottom:10 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 0L9.5 5.5L15 7L9.5 8.5L8 14L6.5 8.5L1 7L6.5 5.5L8 0Z" fill={C.cyan}/></svg>
+                  <span style={{ fontSize:10, fontWeight:700, color:C.cyan, letterSpacing:'0.06em' }}>JAX SUGGESTION</span>
+                </div>
+                <p style={{ fontSize:12, color:'rgba(255,255,255,0.7)', margin:0, lineHeight:1.5 }}>Connect your bank account to start reconciling transactions automatically.</p>
+                <button style={{ marginTop:8, padding:'5px 12px', fontSize:11, fontWeight:700, color:C.navy, background:C.cyan, border:'none', borderRadius:5, cursor:'pointer' }}>Connect bank →</button>
+              </div>
+              <div style={{ textAlign:'center', padding:'12px 0' }}>
+                <div style={{ fontSize:12, color:'rgba(255,255,255,0.3)' }}>No other tasks to display</div>
+              </div>
+            </div>
+
+            {/* Recent invoice payments */}
+            <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
+              <div style={{ padding:'6px 14px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', gap:6 }}>
+                <span style={{ fontSize:11 }}>✨</span>
+                <span style={{ fontSize:11, color:C.whiteMid, fontWeight:500 }}>Sample data — connect your bank to see your real numbers</span>
+              </div>
+              <div style={{ padding:'14px 18px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                <span style={{ fontSize:14, fontWeight:700, color:C.white }}>Recent invoice payments</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="3" r="1.2" fill="rgba(255,255,255,0.3)"/><circle cx="8" cy="8" r="1.2" fill="rgba(255,255,255,0.3)"/><circle cx="8" cy="13" r="1.2" fill="rgba(255,255,255,0.3)"/></svg>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                {recentPayments.map((p,i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:10 }}>
+                    <div style={{ width:32, height:32, borderRadius:8, background:'rgba(0,212,168,0.12)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" fill={C.mint}/><path d="M4 8.5l2.5 2.5 5.5-5" stroke={C.navy} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:12, fontWeight:600, color:C.white, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{p.name}</div>
+                      <div style={{ fontSize:11, color:'rgba(255,255,255,0.35)' }}>{p.date}</div>
+                    </div>
+                    <span style={{ fontSize:13, fontWeight:700, color:C.mint }}>{p.amt}</span>
+                  </div>
+                ))}
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── App shell ──────────────────────────────────────────────────────
+function App() {
+  const [step, setStep] = useState(() => parseInt(localStorage.getItem('xero_ob_step')||'0'));
+  const [switcher, setSwitcher] = useState(() => localStorage.getItem('xero_ob_sw')||null);
+
+  const go = (s) => { setStep(s); localStorage.setItem('xero_ob_step', s); };
+  const reset = () => { setSwitcher(null); localStorage.removeItem('xero_ob_sw'); go(0); };
+
+  // Dashboard is full-page, no card wrapper
+  if (step === 3) return <Screen3 onReset={reset}/>;
+
+  return (
+    <div style={{ fontFamily:"'Space Grotesk',sans-serif", minHeight:'100vh', background:C.navy, position:'relative' }}>
+      <TopNav/>
+      <FloatingIcons/>
+      <div style={{ maxWidth:600, margin:'0 auto', padding:'82px 20px 48px', position:'relative', zIndex:1 }}>
+        <div style={{
+          background:'rgba(19,18,74,0.7)',
+          backdropFilter:'blur(24px)',
+          WebkitBackdropFilter:'blur(24px)',
+          borderRadius:20,
+          padding:'36px 36px 32px',
+          border:'1px solid rgba(255,255,255,0.08)',
+          boxShadow:'0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,200,240,0.05)',
+        }}>
+          {step === 0 && <Screen0 onContinue={sw => { setSwitcher(sw); localStorage.setItem('xero_ob_sw', sw); go(1); }}/>}
+          {step === 1 && <Screen1 switcher={switcher} onContinue={() => go(2)} onBack={() => go(0)}/>}
+          {step === 2 && <Screen2 switcher={switcher} onReset={reset} onToDashboard={() => go(3)}/>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
